@@ -1,0 +1,1416 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Academy - OSI 7계층 & 서브넷팅 마스터</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-green: #00ff88;
+            --dark-green: #00cc6a;
+            --accent-green: #66ffaa;
+            --bg-dark: #0a0f0a;
+            --bg-secondary: #1a2a1a;
+            --bg-card: #2a3a2a;
+            --text-primary: #ffffff;
+            --text-secondary: #cccccc;
+            --text-accent: #00ff88;
+            --border: #3a4a3a;
+            --shadow: rgba(0, 255, 136, 0.2);
+        }
+
+        body {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            background: linear-gradient(135deg, var(--bg-dark) 0%, #0f1f0f 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* 스크롤바 스타일링 */
+        ::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+            border-radius: 6px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-green);
+            border-radius: 6px;
+            border: 2px solid var(--bg-secondary);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--dark-green);
+        }
+
+        .matrix-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            opacity: 0.1;
+        }
+
+        .nav {
+            background: rgba(42, 58, 42, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            border-bottom: 2px solid var(--primary-green);
+            box-shadow: 0 4px 20px var(--shadow);
+        }
+
+        .nav-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-green);
+            text-shadow: 0 0 10px var(--primary-green);
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-tab {
+            padding: 0.5rem 1rem;
+            background: transparent;
+            border: 2px solid var(--primary-green);
+            color: var(--primary-green);
+            cursor: pointer;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .nav-tab:hover, .nav-tab.active {
+            background: var(--primary-green);
+            color: var(--bg-dark);
+            box-shadow: 0 0 15px var(--primary-green);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 6rem 2rem 2rem;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, var(--primary-green), var(--accent-green));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px var(--primary-green);
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .osi-layers {
+            display: grid;
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .layer {
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .layer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, var(--primary-green), transparent);
+            opacity: 0.1;
+            transition: left 0.5s ease;
+        }
+
+        .layer:hover::before {
+            left: 100%;
+        }
+
+        .layer:hover {
+            border-color: var(--primary-green);
+            box-shadow: 0 10px 30px var(--shadow);
+            transform: translateY(-5px);
+        }
+
+        .layer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .layer-number {
+            background: var(--primary-green);
+            color: var(--bg-dark);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .layer-name {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: var(--primary-green);
+        }
+
+        .layer-description {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        .layer-details {
+            display: none;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .layer.expanded .layer-details {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; max-height: 0; }
+            to { opacity: 1; max-height: 500px; }
+        }
+
+        .subnet-calculator {
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .calc-section {
+            margin-bottom: 2rem;
+        }
+
+        .calc-section h3 {
+            color: var(--primary-green);
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .input-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .input-field {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .input-field label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+        }
+
+        .input-field input, .input-field select {
+            width: 100%;
+            padding: 0.8rem;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border);
+            border-radius: 5px;
+            color: var(--text-primary);
+            font-family: inherit;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-field input:focus, .input-field select:focus {
+            outline: none;
+            border-color: var(--primary-green);
+            box-shadow: 0 0 10px var(--shadow);
+        }
+
+        .btn {
+            background: var(--primary-green);
+            color: var(--bg-dark);
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            margin: 0.5rem;
+        }
+
+        .btn:hover {
+            background: var(--dark-green);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px var(--shadow);
+        }
+
+        .results {
+            background: var(--bg-secondary);
+            border: 2px solid var(--primary-green);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            padding: 0.5rem;
+            background: rgba(0, 255, 136, 0.1);
+            border-radius: 5px;
+        }
+
+        .quiz-section {
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .question {
+            margin-bottom: 1.5rem;
+        }
+
+        .question h4 {
+            color: var(--primary-green);
+            margin-bottom: 1rem;
+        }
+
+        .options {
+            display: grid;
+            gap: 0.5rem;
+        }
+
+        .option {
+            padding: 0.8rem;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .option:hover {
+            border-color: var(--primary-green);
+            background: rgba(0, 255, 136, 0.1);
+        }
+
+        .option.selected {
+            border-color: var(--primary-green);
+            background: var(--primary-green);
+            color: var(--bg-dark);
+        }
+
+        .option.correct {
+            border-color: #00ff00;
+            background: rgba(0, 255, 0, 0.2);
+        }
+
+        .option.incorrect {
+            border-color: #ff0000;
+            background: rgba(255, 0, 0, 0.2);
+        }
+
+        .score {
+            text-align: center;
+            font-size: 1.2rem;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: var(--bg-secondary);
+            border-radius: 10px;
+        }
+
+        .lab-section {
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .terminal {
+            background: #000;
+            border: 2px solid var(--primary-green);
+            border-radius: 10px;
+            padding: 1rem;
+            font-family: 'Courier New', monospace;
+            margin: 1rem 0;
+            min-height: 300px;
+            overflow-y: auto;
+        }
+
+        .terminal-line {
+            margin: 0.2rem 0;
+        }
+
+        .prompt {
+            color: var(--primary-green);
+        }
+
+        .command {
+            color: #ffffff;
+        }
+
+        .output {
+            color: var(--accent-green);
+        }
+
+        .command-input {
+            background: transparent;
+            border: none;
+            color: #ffffff;
+            outline: none;
+            width: 100%;
+            font-family: inherit;
+        }
+
+        @media (max-width: 768px) {
+            .nav-tabs {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+            .input-group {
+                flex-direction: column;
+            }
+            
+            .nav-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+
+        .floating-particles {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: var(--primary-green);
+            border-radius: 50%;
+            animation: float 10s infinite linear;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="floating-particles" id="particles"></div>
+    
+    <nav class="nav">
+        <div class="nav-content">
+            <div class="logo">🌐 Network Academy</div>
+            <div class="nav-tabs">
+                <button class="nav-tab active" onclick="showTab('osi')">OSI 7계층</button>
+                <button class="nav-tab" onclick="showTab('subnet')">서브넷 계산기</button>
+                <button class="nav-tab" onclick="showTab('quiz')">실습 퀴즈</button>
+                <button class="nav-tab" onclick="showTab('lab')">네트워크 랩</button>
+                <button class="nav-tab"
+        onclick="window.location.href='https://www.comcbt.com'"
+        style="color: #00faff !important;
+               background-color: #000 !important;
+               border: 2px solid #00faff !important;
+               box-shadow: 0 0 10px #00faff, 0 0 20px #00faff, 0 0 30px #00faff !important;
+               text-shadow: 0 0 5px #00faff !important;
+               font-weight: bold !important;">
+    CBT 풀기
+</button>
+
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- OSI 7계층 탭 -->
+        <div id="osi" class="tab-content active">
+            <div class="hero">
+                <h1>OSI 7계층 마스터</h1>
+                <p>네트워크 통신의 핵심인 OSI 7계층 모델을 완벽하게 이해해보세요</p>
+            </div>
+
+            <div class="osi-layers" id="osiLayers">
+                <!-- OSI 계층들이 여기에 동적으로 생성됩니다 -->
+            </div>
+        </div>
+
+        <!-- 서브넷 계산기 탭 -->
+        <div id="subnet" class="tab-content">
+            <div class="hero">
+                <h1>서브넷 계산기</h1>
+                <p>IP 주소와 서브넷 마스크를 이용한 네트워크 분할 계산을 실습해보세요</p>
+            </div>
+
+            <div class="subnet-calculator">
+                <div class="calc-section">
+                    <h3>🔢 IP 주소 & 서브넷 정보 입력</h3>
+                    <div class="input-group">
+                        <div class="input-field">
+                            <label>IP 주소</label>
+                            <input type="text" id="ipAddress" placeholder="예: 192.168.1.100" value="192.168.1.100">
+                        </div>
+                        <div class="input-field">
+                            <label>서브넷 마스크 (CIDR)</label>
+                            <select id="subnetMask">
+                                <option value="24">/24 (255.255.255.0)</option>
+                                <option value="25">/25 (255.255.255.128)</option>
+                                <option value="26">/26 (255.255.255.192)</option>
+                                <option value="27">/27 (255.255.255.224)</option>
+                                <option value="28">/28 (255.255.255.240)</option>
+                                <option value="29">/29 (255.255.255.248)</option>
+                                <option value="30">/30 (255.255.255.252)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="btn" onclick="calculateSubnet()">🧮 서브넷 계산</button>
+                    <button class="btn" onclick="generateRandomIP()">🎲 랜덤 IP 생성</button>
+                </div>
+
+                <div class="calc-section">
+                    <h3>🏠 호스트 수로 서브넷 계산</h3>
+                    <div class="input-group">
+                        <div class="input-field">
+                            <label>필요한 호스트 수</label>
+                            <input type="number" id="hostCount" placeholder="예: 64" min="2" max="16777214">
+                        </div>
+                        <div class="input-field">
+                            <label>네트워크 주소 (선택사항)</label>
+                            <input type="text" id="baseNetwork" placeholder="예: 192.168.1.0" value="192.168.1.0">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <button class="btn" onclick="calculateByHostCount()">🏠 호스트 수로 계산</button>
+                        <button class="btn" onclick="setCommonHostCount(8)">8 호스트</button>
+                        <button class="btn" onclick="setCommonHostCount(16)">16 호스트</button>
+                        <button class="btn" onclick="setCommonHostCount(32)">32 호스트</button>
+                        <button class="btn" onclick="setCommonHostCount(64)">64 호스트</button>
+                        <button class="btn" onclick="setCommonHostCount(128)">128 호스트</button>
+                        <button class="btn" onclick="setCommonHostCount(256)">256 호스트</button>
+                    </div>
+                </div>
+
+                <div id="subnetResults" class="results" style="display:none;">
+                    <!-- 계산 결과가 여기에 표시됩니다 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 퀴즈 탭 -->
+        <div id="quiz" class="tab-content">
+            <div class="hero">
+                <h1>네트워크 실습 퀴즈</h1>
+                <p>OSI 계층과 서브넷팅 지식을 테스트해보세요</p>
+            </div>
+
+            <div class="quiz-section">
+                <div id="quizContainer">
+                    <!-- 퀴즈가 여기에 동적으로 생성됩니다 -->
+                </div>
+                <button class="btn" onclick="startQuiz()">🎯 퀴즈 시작</button>
+                <button class="btn" onclick="checkAnswers()" id="checkBtn" style="display:none;">✅ 답안 확인</button>
+                <div id="quizScore" class="score" style="display:none;"></div>
+            </div>
+        </div>
+
+        <!-- 네트워크 랩 탭 -->
+        <div id="lab" class="tab-content">
+            <div class="hero">
+                <h1>네트워크 시뮬레이션 랩</h1>
+                <p>가상 터미널에서 네트워크 명령어를 실습해보세요</p>
+            </div>
+
+            <div class="lab-section">
+                <h3>🖥️ 네트워크 터미널</h3>
+                <div class="terminal" id="terminal">
+                    <div class="terminal-line">
+                        <span class="prompt">network@academy:~$</span> <span class="output">Welcome to Network Lab Terminal</span>
+                    </div>
+                    <div class="terminal-line">
+                        <span class="output">사용 가능한 명령어: ping, traceroute, nslookup, ifconfig, netstat, help</span>
+                    </div>
+                    <div class="terminal-line">
+                        <span class="prompt">network@academy:~$</span> 
+                        <input type="text" class="command-input" id="commandInput" placeholder="명령어를 입력하세요..." onkeypress="handleCommand(event)">
+                    </div>
+                </div>
+                <button class="btn" onclick="clearTerminal()">🗑️ 터미널 초기화</button>
+                <button class="btn" onclick="showCommands()">❓ 도움말</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // OSI 계층 데이터
+        const osiLayers = [
+            {
+                number: 7,
+                name: "응용 계층 (Application Layer)",
+                description: "사용자가 네트워크에 접근할 수 있도록 해주는 계층",
+                protocols: ["HTTP", "HTTPS", "FTP", "SMTP", "DNS", "DHCP"],
+                examples: ["웹 브라우저", "이메일 클라이언트", "파일 전송"],
+                functions: ["네트워크 서비스 제공", "사용자 인터페이스", "데이터 포맷 변환"]
+            },
+            {
+                number: 6,
+                name: "표현 계층 (Presentation Layer)",
+                description: "데이터의 형식을 변환하고 암호화/복호화를 담당",
+                protocols: ["SSL/TLS", "JPEG", "MPEG", "ASCII", "EBCDIC"],
+                examples: ["데이터 압축", "암호화", "문자 인코딩"],
+                functions: ["데이터 압축", "암호화/복호화", "데이터 변환"]
+            },
+            {
+                number: 5,
+                name: "세션 계층 (Session Layer)",
+                description: "응용 프로그램 간의 세션을 설정, 관리, 종료",
+                protocols: ["NetBIOS", "RPC", "SQL", "NFS"],
+                examples: ["로그인 세션", "데이터베이스 연결", "원격 프로시저 호출"],
+                functions: ["세션 설정/해제", "동기화", "체크포인트"]
+            },
+            {
+                number: 4,
+                name: "전송 계층 (Transport Layer)",
+                description: "종단 간 신뢰성 있는 데이터 전송을 보장",
+                protocols: ["TCP", "UDP", "SCTP"],
+                examples: ["포트 번호", "연결 설정", "오류 복구"],
+                functions: ["흐름 제어", "오류 제어", "분할 및 재조립"]
+            },
+            {
+                number: 3,
+                name: "네트워크 계층 (Network Layer)",
+                description: "서로 다른 네트워크 간의 경로를 결정하고 패킷을 전달",
+                protocols: ["IP", "ICMP", "ARP", "OSPF", "BGP"],
+                examples: ["라우팅", "IP 주소", "패킷 포워딩"],
+                functions: ["논리적 주소 지정", "경로 설정", "패킷 포워딩"]
+            },
+            {
+                number: 2,
+                name: "데이터링크 계층 (Data Link Layer)",
+                description: "인접한 네트워크 노드 간의 신뢰성 있는 전송을 담당",
+                protocols: ["Ethernet", "Wi-Fi", "PPP", "Frame Relay"],
+                examples: ["MAC 주소", "스위치", "프레임"],
+                functions: ["물리적 주소 지정", "오류 검출", "흐름 제어"]
+            },
+            {
+                number: 1,
+                name: "물리 계층 (Physical Layer)",
+                description: "실제 물리적인 연결과 전기적 신호를 다루는 계층",
+                protocols: ["IEEE 802.11", "Bluetooth", "USB", "RS-232"],
+                examples: ["케이블", "허브", "리피터", "광섬유"],
+                functions: ["비트 전송", "전기적 특성", "물리적 연결"]
+            }
+        ];
+
+        // 퀴즈 데이터
+        const quizData = [
+            {
+                question: "HTTP 프로토콜이 동작하는 OSI 계층은?",
+                options: ["물리 계층", "네트워크 계층", "전송 계층", "응용 계층"],
+                correct: 3
+            },
+            {
+                question: "IP 주소 192.168.1.100/24에서 네트워크 주소는?",
+                options: ["192.168.1.0", "192.168.1.100", "192.168.1.255", "192.168.0.0"],
+                correct: 0
+            },
+            {
+                question: "TCP와 UDP가 동작하는 계층은?",
+                options: ["네트워크 계층", "전송 계층", "세션 계층", "응용 계층"],
+                correct: 1
+            },
+            {
+                question: "/26 서브넷 마스크의 호스트 개수는?",
+                options: ["62개", "30개", "14개", "6개"],
+                correct: 0
+            },
+            {
+                question: "MAC 주소가 사용되는 계층은?",
+                options: ["물리 계층", "데이터링크 계층", "네트워크 계층", "전송 계층"],
+                correct: 1
+            }
+        ];
+
+        // 초기화
+        document.addEventListener('DOMContentLoaded', function() {
+            createOSILayers();
+            createParticles();
+        });
+
+        // 탭 전환
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // OSI 계층 생성
+        function createOSILayers() {
+            const container = document.getElementById('osiLayers');
+            
+            osiLayers.forEach(layer => {
+                const layerDiv = document.createElement('div');
+                layerDiv.className = 'layer';
+                layerDiv.onclick = () => toggleLayer(layerDiv);
+                
+                layerDiv.innerHTML = `
+                    <div class="layer-header">
+                        <div class="layer-number">${layer.number}</div>
+                        <div class="layer-name">${layer.name}</div>
+                        <div style="color: var(--accent-green);">📋</div>
+                    </div>
+                    <div class="layer-description">${layer.description}</div>
+                    <div class="layer-details">
+                        <h4 style="color: var(--primary-green); margin-bottom: 0.5rem;">🔧 주요 프로토콜:</h4>
+                        <p style="margin-bottom: 1rem;">${layer.protocols.join(', ')}</p>
+                        <h4 style="color: var(--primary-green); margin-bottom: 0.5rem;">💡 예시:</h4>
+                        <p style="margin-bottom: 1rem;">${layer.examples.join(', ')}</p>
+                        <h4 style="color: var(--primary-green); margin-bottom: 0.5rem;">⚙️ 주요 기능:</h4>
+                        <p>${layer.functions.join(', ')}</p>
+                    </div>
+                `;
+                
+                container.appendChild(layerDiv);
+            });
+        }
+
+        // 계층 토글
+        function toggleLayer(element) {
+            element.classList.toggle('expanded');
+        }
+
+        // 서브넷 계산
+        function calculateSubnet() {
+            const ip = document.getElementById('ipAddress').value;
+            const cidr = parseInt(document.getElementById('subnetMask').value);
+            
+            if (!isValidIP(ip)) {
+                alert('올바른 IP 주소를 입력해주세요.');
+                return;
+            }
+            
+            const result = calculateSubnetInfo(ip, cidr);
+            displaySubnetResults(result);
+        }
+
+        // IP 유효성 검사
+        function isValidIP(ip) {
+            const regex = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/;
+            const match = ip.match(regex);
+            if (!match) return false;
+            
+            return match.slice(1).every(octet => {
+                const num = parseInt(octet);
+                return num >= 0 && num <= 255;
+            });
+        }
+
+        // 서브넷 정보 계산
+        function calculateSubnetInfo(ip, cidr) {
+            const ipParts = ip.split('.').map(part => parseInt(part));
+            const maskBits = cidr;
+            const hostBits = 32 - maskBits;
+            const totalHosts = Math.pow(2, hostBits);
+            const usableHosts = totalHosts - 2;
+            
+            // 서브넷 마스크 계산
+            let mask = [];
+            for (let i = 0; i < 4; i++) {
+                if (maskBits >= (i + 1) * 8) {
+                    mask.push(255);
+                } else if (maskBits > i * 8) {
+                    mask.push(256 - Math.pow(2, 8 - (maskBits - i * 8)));
+                } else {
+                    mask.push(0);
+                }
+            }
+            
+            // 네트워크 주소 계산
+            const network = ipParts.map((octet, i) => octet & mask[i]);
+            
+            // 브로드캐스트 주소 계산
+            const broadcast = network.map((octet, i) => octet | (255 - mask[i]));
+            
+            // 첫 번째/마지막 호스트 주소
+            const firstHost = [...network];
+            firstHost[3] += 1;
+            const lastHost = [...broadcast];
+            lastHost[3] -= 1;
+            
+            return {
+                ip: ip,
+                cidr: cidr,
+                mask: mask.join('.'),
+                network: network.join('.'),
+                broadcast: broadcast.join('.'),
+                firstHost: firstHost.join('.'),
+                lastHost: lastHost.join('.'),
+                totalHosts: totalHosts,
+                usableHosts: usableHosts,
+                networkClass: getNetworkClass(ipParts[0])
+            };
+        }
+
+        // 네트워크 클래스 확인
+        function getNetworkClass(firstOctet) {
+            if (firstOctet >= 1 && firstOctet <= 126) return 'A';
+            if (firstOctet >= 128 && firstOctet <= 191) return 'B';
+            if (firstOctet >= 192 && firstOctet <= 223) return 'C';
+            if (firstOctet >= 224 && firstOctet <= 239) return 'D (멀티캐스트)';
+            if (firstOctet >= 240 && firstOctet <= 255) return 'E (실험용)';
+            return '알 수 없음';
+        }
+
+        // 서브넷 결과 표시
+        function displaySubnetResults(result) {
+            const resultsDiv = document.getElementById('subnetResults');
+            resultsDiv.style.display = 'block';
+            
+            resultsDiv.innerHTML = `
+                <h3 style="color: var(--primary-green); margin-bottom: 1rem;">📊 서브넷 계산 결과</h3>
+                <div class="result-item">
+                    <span>입력 IP 주소:</span>
+                    <span style="color: var(--accent-green);">${result.ip}/${result.cidr}</span>
+                </div>
+                <div class="result-item">
+                    <span>서브넷 마스크:</span>
+                    <span style="color: var(--accent-green);">${result.mask}</span>
+                </div>
+                <div class="result-item">
+                    <span>네트워크 주소:</span>
+                    <span style="color: var(--accent-green);">${result.network}</span>
+                </div>
+                <div class="result-item">
+                    <span>브로드캐스트 주소:</span>
+                    <span style="color: var(--accent-green);">${result.broadcast}</span>
+                </div>
+                <div class="result-item">
+                    <span>첫 번째 호스트:</span>
+                    <span style="color: var(--accent-green);">${result.firstHost}</span>
+                </div>
+                <div class="result-item">
+                    <span>마지막 호스트:</span>
+                    <span style="color: var(--accent-green);">${result.lastHost}</span>
+                </div>
+                <div class="result-item">
+                    <span>전체 호스트 수:</span>
+                    <span style="color: var(--accent-green);">${result.totalHosts}</span>
+                </div>
+                <div class="result-item">
+                    <span>사용 가능한 호스트 수:</span>
+                    <span style="color: var(--accent-green);">${result.usableHosts}</span>
+                </div>
+                <div class="result-item">
+                    <span>네트워크 클래스:</span>
+                    <span style="color: var(--accent-green);">클래스 ${result.networkClass}</span>
+                </div>
+            `;
+        }
+
+        // 호스트 수로 서브넷 계산
+        function calculateByHostCount() {
+            const hostCount = parseInt(document.getElementById('hostCount').value);
+            const baseNetwork = document.getElementById('baseNetwork').value || '192.168.1.0';
+            
+            if (!hostCount || hostCount < 2) {
+                alert('최소 2개 이상의 호스트 수를 입력해주세요.');
+                return;
+            }
+            
+            if (!isValidNetworkIP(baseNetwork)) {
+                alert('올바른 네트워크 주소를 입력해주세요. (예: 192.168.1.0)');
+                return;
+            }
+            
+            // 필요한 호스트 수 + 네트워크 주소 + 브로드캐스트 주소
+            const totalAddresses = hostCount + 2;
+            
+            // 필요한 비트 수 계산 (2^n >= totalAddresses)
+            const hostBits = Math.ceil(Math.log2(totalAddresses));
+            const subnetBits = 32 - hostBits;
+            
+            // CIDR 유효성 검사
+            if (subnetBits < 8 || subnetBits > 30) {
+                alert('호스트 수가 너무 많거나 적습니다. (2 ~ 16,777,214 범위)');
+                return;
+            }
+            
+            const result = calculateSubnetByHostCount(baseNetwork, subnetBits, hostCount);
+            displayHostCountResults(result);
+        }
+
+        // 일반적인 호스트 수 설정
+        function setCommonHostCount(count) {
+            document.getElementById('hostCount').value = count;
+        }
+
+        // 네트워크 IP 유효성 검사
+        function isValidNetworkIP(ip) {
+            const regex = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/;
+            const match = ip.match(regex);
+            if (!match) return false;
+            
+            return match.slice(1).every(octet => {
+                const num = parseInt(octet);
+                return num >= 0 && num <= 255;
+            });
+        }
+
+        // 호스트 수 기반 서브넷 계산
+        function calculateSubnetByHostCount(networkIP, subnetBits, requestedHosts) {
+            const ipParts = networkIP.split('.').map(part => parseInt(part));
+            const hostBits = 32 - subnetBits;
+            const totalHosts = Math.pow(2, hostBits);
+            const usableHosts = totalHosts - 2;
+            
+            // 서브넷 마스크 계산
+            let mask = [];
+            for (let i = 0; i < 4; i++) {
+                if (subnetBits >= (i + 1) * 8) {
+                    mask.push(255);
+                } else if (subnetBits > i * 8) {
+                    mask.push(256 - Math.pow(2, 8 - (subnetBits - i * 8)));
+                } else {
+                    mask.push(0);
+                }
+            }
+            
+            // 네트워크 주소 정규화 (입력된 IP를 실제 네트워크 주소로 변환)
+            const network = ipParts.map((octet, i) => octet & mask[i]);
+            
+            // 브로드캐스트 주소 계산
+            const broadcast = network.map((octet, i) => octet | (255 - mask[i]));
+            
+            // 첫 번째/마지막 호스트 주소
+            const firstHost = [...network];
+            firstHost[3] += 1;
+            const lastHost = [...broadcast];
+            lastHost[3] -= 1;
+            
+            // 서브넷 분할 예시 (최대 8개)
+            const subnets = [];
+            const subnetSize = totalHosts;
+            let currentNetwork = [...network];
+            
+            for (let i = 0; i < Math.min(8, 256 / (subnetSize / 256)) && currentNetwork[3] < 256; i++) {
+                const subnetBroadcast = [...currentNetwork];
+                subnetBroadcast[3] += (subnetSize - 1);
+                
+                if (subnetBroadcast[3] > 255) {
+                    subnetBroadcast[2] += 1;
+                    subnetBroadcast[3] = subnetBroadcast[3] % 256;
+                }
+                
+                subnets.push({
+                    network: currentNetwork.join('.'),
+                    broadcast: subnetBroadcast.join('.'),
+                    firstHost: `${currentNetwork[0]}.${currentNetwork[1]}.${currentNetwork[2]}.${currentNetwork[3] + 1}`,
+                    lastHost: `${subnetBroadcast[0]}.${subnetBroadcast[1]}.${subnetBroadcast[2]}.${subnetBroadcast[3] - 1}`
+                });
+                
+                // 다음 서브넷으로
+                currentNetwork[3] += subnetSize;
+                if (currentNetwork[3] >= 256) {
+                    currentNetwork[2] += Math.floor(currentNetwork[3] / 256);
+                    currentNetwork[3] = currentNetwork[3] % 256;
+                }
+            }
+            
+            return {
+                requestedHosts: requestedHosts,
+                cidr: subnetBits,
+                mask: mask.join('.'),
+                network: network.join('.'),
+                broadcast: broadcast.join('.'),
+                firstHost: firstHost.join('.'),
+                lastHost: lastHost.join('.'),
+                totalHosts: totalHosts,
+                usableHosts: usableHosts,
+                networkClass: getNetworkClass(network[0]),
+                subnets: subnets,
+                binaryMask: mask.map(octet => octet.toString(2).padStart(8, '0')).join('.')
+            };
+        }
+
+        // 호스트 수 기반 결과 표시
+        function displayHostCountResults(result) {
+            const resultsDiv = document.getElementById('subnetResults');
+            resultsDiv.style.display = 'block';
+            
+            let subnetsHtml = '';
+            if (result.subnets.length > 0) {
+                subnetsHtml = `
+                    <h4 style="color: var(--primary-green); margin: 1rem 0 0.5rem 0;">🌐 가능한 서브넷 분할 예시:</h4>
+                    ${result.subnets.map((subnet, index) => `
+                        <div style="background: var(--bg-secondary); padding: 0.8rem; margin: 0.3rem 0; border-radius: 5px; border-left: 3px solid var(--primary-green);">
+                            <strong>서브넷 ${index + 1}:</strong> ${subnet.network}/${result.cidr}<br>
+                            <small style="color: var(--text-secondary);">
+                                범위: ${subnet.firstHost} ~ ${subnet.lastHost}
+                            </small>
+                        </div>
+                    `).join('')}
+                `;
+            }
+            
+            resultsDiv.innerHTML = `
+                <h3 style="color: var(--primary-green); margin-bottom: 1rem;">🏠 호스트 수 기반 서브넷 계산 결과</h3>
+                <div class="result-item">
+                    <span>요청된 호스트 수:</span>
+                    <span style="color: var(--accent-green);">${result.requestedHosts}개</span>
+                </div>
+                <div class="result-item">
+                    <span>계산된 CIDR:</span>
+                    <span style="color: var(--accent-green);">/${result.cidr}</span>
+                </div>
+                <div class="result-item">
+                    <span>서브넷 마스크:</span>
+                    <span style="color: var(--accent-green);">${result.mask}</span>
+                </div>
+                <div class="result-item">
+                    <span>이진수 마스크:</span>
+                    <span style="color: var(--accent-green); font-size: 0.9em;">${result.binaryMask}</span>
+                </div>
+                <div class="result-item">
+                    <span>네트워크 주소:</span>
+                    <span style="color: var(--accent-green);">${result.network}/${result.cidr}</span>
+                </div>
+                <div class="result-item">
+                    <span>브로드캐스트 주소:</span>
+                    <span style="color: var(--accent-green);">${result.broadcast}</span>
+                </div>
+                <div class="result-item">
+                    <span>첫 번째 호스트:</span>
+                    <span style="color: var(--accent-green);">${result.firstHost}</span>
+                </div>
+                <div class="result-item">
+                    <span>마지막 호스트:</span>
+                    <span style="color: var(--accent-green);">${result.lastHost}</span>
+                </div>
+                <div class="result-item">
+                    <span>전체 주소 수:</span>
+                    <span style="color: var(--accent-green);">${result.totalHosts}개</span>
+                </div>
+                <div class="result-item">
+                    <span>사용 가능한 호스트 수:</span>
+                    <span style="color: var(--accent-green);">${result.usableHosts}개</span>
+                </div>
+                <div class="result-item">
+                    <span>네트워크 클래스:</span>
+                    <span style="color: var(--accent-green);">클래스 ${result.networkClass}</span>
+                </div>
+                ${subnetsHtml}
+            `;
+        }
+        function generateRandomIP() {
+            const classes = [
+                { min: 192, max: 192, second: 168 }, // 클래스 C 사설
+                { min: 172, max: 172, second: 16 },   // 클래스 B 사설
+                { min: 10, max: 10, second: 0 }       // 클래스 A 사설
+            ];
+            
+            const selectedClass = classes[Math.floor(Math.random() * classes.length)];
+            const first = selectedClass.min;
+            const second = selectedClass.second + Math.floor(Math.random() * 16);
+            const third = Math.floor(Math.random() * 256);
+            const fourth = Math.floor(Math.random() * 254) + 1;
+            
+            document.getElementById('ipAddress').value = `${first}.${second}.${third}.${fourth}`;
+        }
+
+        // 퀴즈 시작
+        function startQuiz() {
+            const container = document.getElementById('quizContainer');
+            container.innerHTML = '';
+            
+            quizData.forEach((quiz, index) => {
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'question';
+                
+                questionDiv.innerHTML = `
+                    <h4>Q${index + 1}. ${quiz.question}</h4>
+                    <div class="options">
+                        ${quiz.options.map((option, optIndex) => 
+                            `<div class="option" onclick="selectOption(${index}, ${optIndex})" data-question="${index}" data-option="${optIndex}">
+                                ${optIndex + 1}. ${option}
+                            </div>`
+                        ).join('')}
+                    </div>
+                `;
+                
+                container.appendChild(questionDiv);
+            });
+            
+            document.getElementById('checkBtn').style.display = 'inline-block';
+            document.getElementById('quizScore').style.display = 'none';
+        }
+
+        // 옵션 선택
+        function selectOption(questionIndex, optionIndex) {
+            // 같은 질문의 다른 옵션들 선택 해제
+            document.querySelectorAll(`[data-question="${questionIndex}"]`).forEach(option => {
+                option.classList.remove('selected');
+            });
+            
+            // 선택된 옵션 표시
+            event.target.classList.add('selected');
+        }
+
+        // 답안 확인
+        function checkAnswers() {
+            let score = 0;
+            
+            quizData.forEach((quiz, questionIndex) => {
+                const selectedOption = document.querySelector(`[data-question="${questionIndex}"].selected`);
+                const allOptions = document.querySelectorAll(`[data-question="${questionIndex}"]`);
+                
+                allOptions.forEach((option, optIndex) => {
+                    if (optIndex === quiz.correct) {
+                        option.classList.add('correct');
+                    } else if (option.classList.contains('selected') && optIndex !== quiz.correct) {
+                        option.classList.add('incorrect');
+                    }
+                });
+                
+                if (selectedOption && parseInt(selectedOption.dataset.option) === quiz.correct) {
+                    score++;
+                }
+            });
+            
+            const scoreDiv = document.getElementById('quizScore');
+            const percentage = Math.round((score / quizData.length) * 100);
+            
+            scoreDiv.innerHTML = `
+                <h3 style="color: var(--primary-green);">🎯 퀴즈 결과</h3>
+                <p>정답: ${score}/${quizData.length} (${percentage}%)</p>
+                <p>${getScoreMessage(percentage)}</p>
+            `;
+            scoreDiv.style.display = 'block';
+            
+            document.getElementById('checkBtn').style.display = 'none';
+        }
+
+        // 점수에 따른 메시지
+        function getScoreMessage(percentage) {
+            if (percentage >= 90) return "🏆 네트워크 전문가 수준입니다!";
+            if (percentage >= 70) return "👍 우수한 실력입니다!";
+            if (percentage >= 50) return "📚 조금 더 학습이 필요합니다.";
+            return "💪 기초부터 다시 공부해보세요!";
+        }
+
+        // 터미널 명령어 처리
+        function handleCommand(event) {
+            if (event.key === 'Enter') {
+                const input = event.target;
+                const command = input.value.trim();
+                
+                if (command) {
+                    executeCommand(command);
+                    input.value = '';
+                }
+            }
+        }
+
+        // 명령어 실행
+        function executeCommand(command) {
+            const terminal = document.getElementById('terminal');
+            const parts = command.split(' ');
+            const cmd = parts[0].toLowerCase();
+            const args = parts.slice(1);
+            
+            // 입력된 명령어 표시
+            addTerminalLine(`<span class="prompt">network@academy:~$</span> <span class="command">${command}</span>`);
+            
+            switch (cmd) {
+                case 'ping':
+                    simulatePing(args[0] || 'google.com');
+                    break;
+                case 'traceroute':
+                    simulateTraceroute(args[0] || 'google.com');
+                    break;
+                case 'nslookup':
+                    simulateNslookup(args[0] || 'google.com');
+                    break;
+                case 'ifconfig':
+                    simulateIfconfig();
+                    break;
+                case 'netstat':
+                    simulateNetstat();
+                    break;
+                case 'help':
+                    showCommands();
+                    break;
+                case 'clear':
+                    clearTerminal();
+                    return;
+                default:
+                    addTerminalLine(`<span class="output">명령어를 찾을 수 없습니다: ${cmd}</span>`);
+                    addTerminalLine(`<span class="output">사용 가능한 명령어를 보려면 'help'를 입력하세요.</span>`);
+            }
+            
+            addNewPrompt();
+        }
+
+        // 터미널에 새 줄 추가
+        function addTerminalLine(content) {
+            const terminal = document.getElementById('terminal');
+            const line = document.createElement('div');
+            line.className = 'terminal-line';
+            line.innerHTML = content;
+            
+            // 마지막 입력 라인 제거
+            const lastInput = terminal.querySelector('.terminal-line:last-child');
+            if (lastInput && lastInput.querySelector('.command-input')) {
+                terminal.removeChild(lastInput);
+            }
+            
+            terminal.appendChild(line);
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+
+        // 새 프롬프트 추가
+        function addNewPrompt() {
+            const terminal = document.getElementById('terminal');
+            const promptLine = document.createElement('div');
+            promptLine.className = 'terminal-line';
+            promptLine.innerHTML = `
+                <span class="prompt">network@academy:~$</span> 
+                <input type="text" class="command-input" placeholder="명령어를 입력하세요..." onkeypress="handleCommand(event)">
+            `;
+            terminal.appendChild(promptLine);
+            
+            // 새 입력 필드에 포커스
+            const newInput = promptLine.querySelector('.command-input');
+            newInput.focus();
+            
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+
+        // Ping 시뮬레이션
+        function simulatePing(host) {
+            addTerminalLine(`<span class="output">PING ${host} (${generateRandomIP()}): 56 data bytes</span>`);
+            
+            for (let i = 0; i < 4; i++) {
+                setTimeout(() => {
+                    const time = (Math.random() * 50 + 10).toFixed(1);
+                    addTerminalLine(`<span class="output">64 bytes from ${host}: icmp_seq=${i} time=${time}ms</span>`);
+                }, i * 500);
+            }
+            
+            setTimeout(() => {
+                addTerminalLine(`<span class="output">--- ${host} ping statistics ---</span>`);
+                addTerminalLine(`<span class="output">4 packets transmitted, 4 received, 0% packet loss</span>`);
+            }, 2500);
+        }
+
+        // Traceroute 시뮬레이션
+        function simulateTraceroute(host) {
+            addTerminalLine(`<span class="output">traceroute to ${host}, 30 hops max, 60 byte packets</span>`);
+            
+            const hops = [
+                '192.168.1.1 (gateway)',
+                '10.0.0.1 (ISP)',
+                '203.248.252.2 (ISP-backbone)',
+                `${generateRandomIP()} (${host})`
+            ];
+            
+            hops.forEach((hop, index) => {
+                setTimeout(() => {
+                    const time = (Math.random() * 20 + 5).toFixed(1);
+                    addTerminalLine(`<span class="output">${index + 1}  ${hop}  ${time}ms</span>`);
+                }, index * 800);
+            });
+        }
+
+        // Nslookup 시뮬레이션
+        function simulateNslookup(domain) {
+            setTimeout(() => {
+                addTerminalLine(`<span class="output">Server: 8.8.8.8</span>`);
+                addTerminalLine(`<span class="output">Address: 8.8.8.8#53</span>`);
+                addTerminalLine(`<span class="output"></span>`);
+                addTerminalLine(`<span class="output">Non-authoritative answer:</span>`);
+                addTerminalLine(`<span class="output">Name: ${domain}</span>`);
+                addTerminalLine(`<span class="output">Address: ${generateRandomIP()}</span>`);
+            }, 500);
+        }
+
+        // Ifconfig 시뮬레이션
+        function simulateIfconfig() {
+            setTimeout(() => {
+                addTerminalLine(`<span class="output">eth0: flags=4163&lt;UP,BROADCAST,RUNNING,MULTICAST&gt;  mtu 1500</span>`);
+                addTerminalLine(`<span class="output">        inet ${generateRandomIP()}  netmask 255.255.255.0  broadcast 192.168.1.255</span>`);
+                addTerminalLine(`<span class="output">        inet6 fe80::a00:27ff:fe4e:66a1  prefixlen 64  scopeid 0x20&lt;link&gt;</span>`);
+                addTerminalLine(`<span class="output">        ether 08:00:27:4e:66:a1  txqueuelen 1000  (Ethernet)</span>`);
+                addTerminalLine(`<span class="output">        RX packets 1543  bytes 1889729 (1.8 MB)</span>`);
+                addTerminalLine(`<span class="output">        TX packets 1157  bytes 90626 (90.6 KB)</span>`);
+            }, 300);
+        }
+
+        // Netstat 시뮬레이션
+        function simulateNetstat() {
+            setTimeout(() => {
+                addTerminalLine(`<span class="output">Active Internet connections (servers and established)</span>`);
+                addTerminalLine(`<span class="output">Proto Recv-Q Send-Q Local Address           Foreign Address         State</span>`);
+                addTerminalLine(`<span class="output">tcp        0      0 0.0.0.0:22              0.0.0.0:*               LISTEN</span>`);
+                addTerminalLine(`<span class="output">tcp        0      0 127.0.0.1:3306          0.0.0.0:*               LISTEN</span>`);
+                addTerminalLine(`<span class="output">tcp        0      0 0.0.0.0:80              0.0.0.0:*               LISTEN</span>`);
+                addTerminalLine(`<span class="output">tcp        0      0 192.168.1.100:45678     74.125.224.72:443       ESTABLISHED</span>`);
+            }, 400);
+        }
+
+        // 도움말 표시
+        function showCommands() {
+            addTerminalLine(`<span class="output">📚 사용 가능한 네트워크 명령어:</span>`);
+            addTerminalLine(`<span class="output">  ping [호스트]     - 호스트로 ICMP 패킷 전송</span>`);
+            addTerminalLine(`<span class="output">  traceroute [호스트] - 호스트까지의 경로 추적</span>`);
+            addTerminalLine(`<span class="output">  nslookup [도메인] - DNS 조회</span>`);
+            addTerminalLine(`<span class="output">  ifconfig         - 네트워크 인터페이스 정보</span>`);
+            addTerminalLine(`<span class="output">  netstat          - 네트워크 연결 상태</span>`);
+            addTerminalLine(`<span class="output">  clear            - 터미널 화면 지우기</span>`);
+            addTerminalLine(`<span class="output">  help             - 이 도움말 표시</span>`);
+        }
+
+        // 터미널 초기화
+        function clearTerminal() {
+            const terminal = document.getElementById('terminal');
+            terminal.innerHTML = `
+                <div class="terminal-line">
+                    <span class="prompt">network@academy:~$</span> <span class="output">터미널이 초기화되었습니다.</span>
+                </div>
+                <div class="terminal-line">
+                    <span class="prompt">network@academy:~$</span> 
+                    <input type="text" class="command-input" placeholder="명령어를 입력하세요..." onkeypress="handleCommand(event)">
+                </div>
+            `;
+            
+            // 새 입력 필드에 포커스
+            const newInput = terminal.querySelector('.command-input');
+            newInput.focus();
+        }
+
+        // 랜덤 IP 생성 (시뮬레이션용)
+        function generateRandomIP() {
+            return Array.from({length: 4}, () => Math.floor(Math.random() * 256)).join('.');
+        }
+
+        // 파티클 생성
+        function createParticles() {
+            const particleContainer = document.getElementById('particles');
+            
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 10 + 's';
+                particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+                particleContainer.appendChild(particle);
+            }
+        }
+
+        // 터미널 초기 포커스
+        setTimeout(() => {
+            const firstInput = document.querySelector('.command-input');
+            if (firstInput) firstInput.focus();
+        }, 1000);
+    </script>
+</body>
+</html>
